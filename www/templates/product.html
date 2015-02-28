@@ -1,0 +1,25 @@
+<ion-view title="Builds">
+  <ion-content>
+  <ion-refresher on-refresh="refreshReleases()"></ion-refresher>
+  <ion-list>
+    <ion-item ng-repeat="release in releases | orderBy:'created_at':true">
+      
+        <div class="row">
+          <div class="col-80">
+            <h2>{{release.display_name}} {{release.version}}</h2>
+            <p>
+              {{release.identifier}} <br>
+              {{release.created_at | date:'medium'}} <br>
+              Notes: {{release.notes}}  
+            </p>          
+          </div>
+          <div class="col-20">
+            <a ng-href="{{release.plist_url}}" class="button button-positive">
+               Install 
+            </a>
+          </div>
+        </div>
+    </ion-item>
+  </ion-list>
+  </ion-content>
+</ion-view>
