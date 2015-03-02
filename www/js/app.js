@@ -39,26 +39,31 @@ angular.module('starter', ['ionic'])
   $urlRouterProvider.otherwise('/products');
 })
 
-.controller('ProductsCtrl', function($scope, products, $ionicLoading) {
+.controller('ProductsCtrl', function($scope, products, $ionicLoading, $timeout) {
 
   $scope.host = host;
 
-  $scope.refreshProducts = function() {
+  $scope.init = function() {
+    $ionicLoading.show({
+      template: '<i class="ion-loading-c"></i><br>Loading ...',
+      duration: 10000
+    });
+    $scope.getAllProducts();
+  }
+
+  $scope.getAllProducts = function() {
     products.load().then(function(){
       $scope.products = products.list;
       $scope.$broadcast('scroll.refreshComplete');
-    })
+      $ionicLoading.hide(); 
+    }, function(err){
+      console.log('error:' + err);
+      $ionicLoading.hide();
+      $scope.$broadcast('scroll.refreshComplete');
+    });
   }
 
-  $ionicLoading.show({
-    template: '<i class="ion-loading-c"></i><br>Loading ...'
-  });
-
-  products.ready.then(function(){
-    $scope.products = products.list;
-    $ionicLoading.hide();
-  });
-
+  $scope.init();
 })
 
 .controller('ProductCtrl', function($scope, productReleases, $stateParams, $ionicLoading){
@@ -72,7 +77,8 @@ angular.module('starter', ['ionic'])
 
 
   $ionicLoading.show({
-    template: '<i class="ion-loading-c"></i><br>Loading ...'
+    template: '<i class="ion-loading-c"></i><br>Loading ...',
+    duration: 10000
   });
 
 
@@ -82,18 +88,22 @@ angular.module('starter', ['ionic'])
   })
 })
 
-.factory('products', function($http) {
+.factory('products', function($http, $q) {
   var products = {};
   products.list = [];
   products.load = function() {
-    return $http.get(host + '/api/products')
-      .then(function(res) {
-        products.list = res.data;
-      });
+    var defer = $q.defer();
+    $http.get(host + '/api/products')
+    .success(function(res) {
+      console.log(res);
+      products.list = res;
+      defer.resolve(res);
+    })
+    .error(function(err, status) {
+      defer.reject(err);
+    })
+    return defer.promise;
   };
-
-  products.ready = products.load();
-
   return products;
 })
 
